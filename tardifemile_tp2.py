@@ -63,19 +63,33 @@ class MessageBoard(QWidget):
         sorted_selec = sorted(selected_obj)
 
         if(check_select.isChecked()):
+            ## les objets sélectionnés
             for i in reversed(sorted_selec):
                 print(i)
-                cmds.reorder(i, front=True)
+
+                if(check_order.isChecked()):
+                    cmds.reorder(i, front=True)
+
+                if(check_color.isChecked()):
+                    if cmds.attributeQuery("useOutlinerColor", node=i, exists=True): # on vérifie si l'attribut existe sinon ca crash
+                        cmds.setAttr(f"{i}.useOutlinerColor", 1)
+                        cmds.setAttr(f"{i}.outlinerColor", 1, 0, 0)
+
         else:
+            ## tous les objets
             for i in reversed(all_obj):
-                cmds.reorder(i, front=True)
 
-        ## cmds.reorder(sorted_selec, front=True)
+                if(check_order.isChecked()):
+                    cmds.reorder(i, front=True)
 
-        cmds.undoInfo(closeChunk=True) ## fin du ctrl z
+                if(check_color.isChecked()):
+                    print(f"Coloration de : {i}")
+
+                    cmds.setAttr(f"{i}.useOutlinerColor", 1)
+                    cmds.setAttr(f"{i}.outlinerColor", 1, 0, 0)
 
 
-   
+        cmds.undoInfo(closeChunk=True) ## fin du ctrl z   
  
 def main():
     global widget
