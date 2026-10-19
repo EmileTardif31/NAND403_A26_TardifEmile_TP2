@@ -1,5 +1,6 @@
 ## tp2 emile tardif
-
+import json
+import os
 import maya.cmds as cmds
 
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QLineEdit, QPushButton, QMessageBox, QCheckBox
@@ -44,52 +45,50 @@ class MessageBoard(QWidget):
         button.clicked.connect(self.on_click)
    
     def on_click(self):
+        cmds.undoInfo(closeChunk=True) ## on le close au debut pour si jamais on refresh le script et que le close ne sest pas fait (garantit que le ctrl-z marche)
         cmds.undoInfo(openChunk=True) ## debut du ctrl z
-        print("click")
+        print("----")
 
-        outliners = cmds.getPanel(type="outlinerPanel") # get les outliners
+        fichier = text_box.text()
 
-        # get le 1er outliner sil existe
-        if(outliners[0]):
-            outliner = cmds.outlinerPanel(
-                outliners[0],
-                query=True,
-                outlinerEditor=True
-            )
+        if os.path.exists(fichier):
+            print("Valid file.")
 
-        ## selected objects
-        all_obj = cmds.ls(type="transform") ## cmds.ls(assemblies=True)
-        selected_obj = cmds.ls(selection=True, objectsOnly=True)
-        sorted_selec = sorted(selected_obj)
+            ## selected objects
+            all_obj = cmds.ls(type="transform")
+            selected_obj = cmds.ls(selection=True, objectsOnly=True)
+            sorted_selec = sorted(selected_obj)
 
-        if(check_select.isChecked()):
-            ## les objets sélectionnés
-            for i in reversed(sorted_selec):
-                print(i)
+            if(check_select.isChecked()):
+                ## les objets sélectionnés
+                for i in reversed(sorted_selec):
+                    print(i)
 
-                if(check_order.isChecked()):
-                    cmds.reorder(i, front=True)
+                    if(check_order.isChecked()):
+                        cmds.reorder(i, front=True)
 
-                if(check_color.isChecked()):
-                    if cmds.attributeQuery("useOutlinerColor", node=i, exists=True): # on vérifie si l'attribut existe sinon ca crash
+                    if(check_color.isChecked()):
+                        if cmds.attributeQuery("useOutlinerColor", node=i, exists=True): # on vérifie si l'attribut existe sinon ca crash
+                            cmds.setAttr(f"{i}.useOutlinerColor", 1)
+                            cmds.setAttr(f"{i}.outlinerColor", 1, 0, 0)
+
+            else:
+                ## tous les objets
+                for i in reversed(all_obj):
+
+                    if(check_order.isChecked()):
+                        cmds.reorder(i, front=True)
+
+                    if(check_color.isChecked()):
+                        print(f"Coloration de : {i}")
+
                         cmds.setAttr(f"{i}.useOutlinerColor", 1)
-                        cmds.setAttr(f"{i}.outlinerColor", 1, 0, 0)
+                        cmds.setAttr(f"{i}.outlinerColor", 1, 0, 0)  
 
         else:
-            ## tous les objets
-            for i in reversed(all_obj):
+            print("Invalid file.")
 
-                if(check_order.isChecked()):
-                    cmds.reorder(i, front=True)
-
-                if(check_color.isChecked()):
-                    print(f"Coloration de : {i}")
-
-                    cmds.setAttr(f"{i}.useOutlinerColor", 1)
-                    cmds.setAttr(f"{i}.outlinerColor", 1, 0, 0)
-
-
-        cmds.undoInfo(closeChunk=True) ## fin du ctrl z   
+        cmds.undoInfo(closeChunk=True) ## fin du ctrl z
  
 def main():
     global widget
