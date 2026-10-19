@@ -61,7 +61,7 @@ class MessageBoard(QWidget):
 
             ## selected objects            
             selected_obj = cmds.ls(selection=True, objectsOnly=True) # get tous les objets sélectionnés
-            sorted_selec = sorted(selected_obj) # sort les objets sélectionnés
+            sorted_selec = sorted(selected_obj) # trie les objets sélectionnés
 
             # ouvre les attributs du json pour faire les changements
             for prefixe, couleur in reversed(donnees.items()):
@@ -84,11 +84,9 @@ class MessageBoard(QWidget):
                 else:
                     ## tous les objets avec le préfixe
                     all_obj = cmds.ls(f"{prefixe}*", type="transform") # sélectionne tous les objets avec un des préfixes dans les rules
-                    sorted_all = sorted(all_obj)
+                    sorted_all = sorted(all_obj) # trie les objets
 
                     for i in reversed(sorted_all):
-                        print(i)
-                        print("--")
 
                         # changer l'ordre
                         if(check_order.isChecked()):
