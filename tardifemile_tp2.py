@@ -1,4 +1,6 @@
-## hello world
+## tp2 emile tardif
+
+import maya.cmds as cmds
 
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QLineEdit, QPushButton, QMessageBox, QCheckBox
  
@@ -42,7 +44,37 @@ class MessageBoard(QWidget):
         button.clicked.connect(self.on_click)
    
     def on_click(self):
+        cmds.undoInfo(openChunk=True) ## debut du ctrl z
         print("click")
+
+        outliners = cmds.getPanel(type="outlinerPanel") # get les outliners
+
+        # get le 1er outliner sil existe
+        if(outliners[0]):
+            outliner = cmds.outlinerPanel(
+                outliners[0],
+                query=True,
+                outlinerEditor=True
+            )
+
+        ## selected objects
+        all_obj = cmds.ls(type="transform") ## cmds.ls(assemblies=True)
+        selected_obj = cmds.ls(selection=True, objectsOnly=True)
+        sorted_selec = sorted(selected_obj)
+
+        if(check_select.isChecked()):
+            for i in reversed(sorted_selec):
+                print(i)
+                cmds.reorder(i, front=True)
+        else:
+            for i in reversed(all_obj):
+                cmds.reorder(i, front=True)
+
+        ## cmds.reorder(sorted_selec, front=True)
+
+        cmds.undoInfo(closeChunk=True) ## fin du ctrl z
+
+
    
  
 def main():
