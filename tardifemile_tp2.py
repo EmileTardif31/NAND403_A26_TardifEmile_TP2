@@ -49,47 +49,62 @@ class MessageBoard(QWidget):
         cmds.undoInfo(openChunk=True) ## debut du ctrl z
         print("----")
 
-        fichier = text_box.text()
+        fichier = text_box.text() # get le path entré
 
+        # validation du fichier
         if os.path.exists(fichier):
             print("Valid file.")
 
-            ## selected objects
-            all_obj = cmds.ls(type="transform")
-            selected_obj = cmds.ls(selection=True, objectsOnly=True)
-            sorted_selec = sorted(selected_obj)
+            # récupération des infos du fichier
+            with open(fichier, "r", encoding="utf-8") as small_fichier:
+                donnees = json.load(small_fichier)
 
-            if(check_select.isChecked()):
-                ## les objets sélectionnés
-                for i in reversed(sorted_selec):
-                    print(i)
+            ## selected objects            
+            selected_obj = cmds.ls(selection=True, objectsOnly=True) # get tous les objets sélectionnés
+            sorted_selec = sorted(selected_obj) # sort les objets sélectionnés
 
-                    if(check_order.isChecked()):
-                        cmds.reorder(i, front=True)
+            # ouvre les attributs du json pour faire les changements
+            for prefixe, couleur in reversed(donnees.items()):
 
-                    if(check_color.isChecked()):
-                        if cmds.attributeQuery("useOutlinerColor", node=i, exists=True): # on vérifie si l'attribut existe sinon ca crash
+                if(check_select.isChecked()):
+                    ## les objets sélectionnés avec le préfixe
+                    for i in reversed(sorted_selec):
+                        if(i.startswith(prefixe)): # si l'objet a un préfixe qui est dans les rules
+
+                            # changer l'ordre
+                            if(check_order.isChecked()):
+                                cmds.reorder(i, front=True)
+
+                            # changer la couleur
+                            if(check_color.isChecked()):
+                                if cmds.attributeQuery("useOutlinerColor", node=i, exists=True): # on vérifie si l'attribut existe sinon ca crash
+                                    cmds.setAttr(f"{i}.useOutlinerColor", 1)
+                                    cmds.setAttr(f"{i}.outlinerColor", *couleur)
+
+                else:
+                    ## tous les objets avec le préfixe
+                    all_obj = cmds.ls(f"{prefixe}*", type="transform") # sélectionne tous les objets avec un des préfixes dans les rules
+                    sorted_all = sorted(all_obj)
+
+                    for i in reversed(sorted_all):
+                        print(i)
+                        print("--")
+
+                        # changer l'ordre
+                        if(check_order.isChecked()):
+                            cmds.reorder(i, front=True) # remet au top l'objet
+
+                        # changer la couleur
+                        if(check_color.isChecked()):
                             cmds.setAttr(f"{i}.useOutlinerColor", 1)
-                            cmds.setAttr(f"{i}.outlinerColor", 1, 0, 0)
-
-            else:
-                ## tous les objets
-                for i in reversed(all_obj):
-
-                    if(check_order.isChecked()):
-                        cmds.reorder(i, front=True)
-
-                    if(check_color.isChecked()):
-                        print(f"Coloration de : {i}")
-
-                        cmds.setAttr(f"{i}.useOutlinerColor", 1)
-                        cmds.setAttr(f"{i}.outlinerColor", 1, 0, 0)  
+                            cmds.setAttr(f"{i}.outlinerColor", *couleur)  
 
         else:
             print("Invalid file.")
 
         cmds.undoInfo(closeChunk=True) ## fin du ctrl z
- 
+
+# le truc du prof pour afficher le widget
 def main():
     global widget
     try:
